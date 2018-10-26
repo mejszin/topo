@@ -31,11 +31,11 @@ def render(parent, values, level)
   values.each do |a,b|
     if b.is_a?(Hash)
       s = FXPacker.new(parent, (FRAME_LINE|LAYOUT_SIDE_LEFT), cnt_params)
-      l = FXLabel.new(s, a)
+      l = FXLabel.new(s, a.to_s)
       render(s, b, level + 1)
     else
       s = FXPacker.new(parent, (FRAME_LINE|LAYOUT_FILL_X))
-      l = FXLabel.new(s, a)
+      l = FXLabel.new(s, a.to_s)
     end
     s.backColor = color
     l.backColor = color

@@ -46,11 +46,11 @@ class AppWindow < FXMainWindow
     self.backColor = hex_to_rgb("#FFFFFF")
     # Render topo
     topo(@frame, data)
-	end
-	def create
+  end
+  def create
     super
-		show(PLACEMENT_SCREEN)
-	end
+    show(PLACEMENT_SCREEN)
+  end
 end
 
 # Return if no path given or not a path

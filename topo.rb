@@ -1,11 +1,10 @@
-# Requirements ════════════════════════════════════════════════════════════════
-
 require 'yaml'
+require 'json'
 require 'fox16'
 require 'fox16/colors'
 include Fox
 
-# App ═════════════════════════════════════════════════════════════════════════
+COLORS = ["#BED295", "#DEDEDE", "#BEBEBE", "#FFFFFF"]
 
 def hex_to_rgb(hex_color)
   m = hex_color.match /#(..)(..)(..)/
@@ -13,67 +12,40 @@ def hex_to_rgb(hex_color)
 end
 
 def render(parent, values, level)
-  cnt_params = {
-    :padding  => 8, 
-    :vSpacing => 8,
-    :hSpacing => 8
-  }
-  color = case level
-    when 0
-      hex_to_rgb("#BED295")
-    when 1
-      hex_to_rgb("#DEDEDE")
-    when 2
-      hex_to_rgb("#BEBEBE")
-  else
-    hex_to_rgb("#FFFFFF")
-  end
-  values.each do |a,b|
-    if b.is_a?(Hash)
-      s = FXPacker.new(parent, (FRAME_LINE|LAYOUT_SIDE_LEFT), cnt_params)
-      l = FXLabel.new(s, a.to_s)
-      render(s, b, level + 1)
-    else
-      s = FXPacker.new(parent, (FRAME_LINE|LAYOUT_FILL_X))
-      l = FXLabel.new(s, a.to_s)
-    end
-    s.backColor = color
-    l.backColor = color
+  color = level < COLORS.length ? COLORS[level] : COLORS.last
+  values.each do |key, val|
+    # Assign dimensions and drawing options
+    opts = val.is_a?(Hash) ? (FRAME_LINE|LAYOUT_SIDE_LEFT) : (FRAME_LINE|LAYOUT_FILL_X)
+    dims = val.is_a?(Hash) ? { :padding => 8, :vSpacing => 8, :hSpacing => 8 } : {}
+    # Create container
+    box = FXPacker.new(parent, opts, dims)
+    box.backColor = hex_to_rgb(color)
+    # Create label
+    lbl = FXLabel.new(box, key.to_s)
+    lbl.backColor = hex_to_rgb(color)
+    # Call recursively until endpoint
+    render(box, val, level + 1) if val.is_a?(Hash)
   end
 end
 
-def load_topo(parent, values)
-  puts values
+def topo(parent, values)
   render(parent, values, 0)
 end
 
 class AppWindow < FXMainWindow
 
-  def initialize(app, title, w, h)
-
-    properties = {
-      :width => w,
-      :height => h,
-      :padding => 32
-    }
-
+  def initialize(app, title, w, h, data)
+    # Create app window
+    properties = { :width => w, :height => h, :padding => 32 }
     super(app, title, properties)
-
-    @frame = FXPacker.new(
-    	self,
-      (FRAME_NONE|LAYOUT_FILL|LAYOUT_SIDE_LEFT),
-      
-      :padLeft 		=> 0,
-      :padTop 		=> 0,
-      :padRight 	=> 0,
-      :padBottom 	=> 0
-    )
-
+    # Create window frame
+    opts = (FRAME_NONE|LAYOUT_FILL|LAYOUT_SIDE_LEFT)
+    dims = {:padLeft => 0, :padTop => 0, :padRight => 0, :padBottom => 0 }
+    @frame = FXPacker.new(self, opts, dims)
     @frame.backColor = hex_to_rgb("#FFFFFF")
     self.backColor = hex_to_rgb("#FFFFFF")
-
-    load_topo(@frame, YAML.load_file("./topo.yml"))
-
+    # Render topo
+    topo(@frame, data)
 	end
 	def create
     super
@@ -81,9 +53,28 @@ class AppWindow < FXMainWindow
 	end
 end
 
-# Initialization ══════════════════════════════════════════════════════════════
+# Return if no path given or not a path
+if (ARGV.length == 0) || (!File.file?(ARGV[0]))
+  puts "Invalid file name"; exit
+end
 
+# Assign path
+path = ARGV[0]
+
+# Get data
+case File.extname(path)
+when ".json"
+  file = File.open(path)
+  data = JSON.load(file)
+  file.close
+when ".yml", ".yaml"
+  data = YAML.load_file(path)
+else
+  puts "Invalid file extension"; exit
+end
+
+# Create app
 app = FXApp.new
-window = AppWindow.new(app, "", 400, 360)
+window = AppWindow.new(app, "", 400, 360, data)
 app.create
 app.run

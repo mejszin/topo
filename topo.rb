@@ -11,11 +11,11 @@ def hex_to_rgb(hex_color)
   return Fox.FXRGB(m[1].hex, m[2].hex, m[3].hex)
 end
 
-def render(parent, values, level)
+def render(parent, data, level)
   color = level < COLORS.length ? COLORS[level] : COLORS.last
-  values.each do |key, val|
+  data.each do |key, val|
     # Assign dimensions and drawing options
-    opts = val.is_a?(Hash) ? (FRAME_LINE|LAYOUT_SIDE_LEFT) : (FRAME_LINE|LAYOUT_FILL_X)
+    opts = FRAME_LINE|(val.is_a?(Hash) ? LAYOUT_SIDE_LEFT : LAYOUT_FILL_X)
     dims = val.is_a?(Hash) ? { :padding => 8, :vSpacing => 8, :hSpacing => 8 } : {}
     # Create container
     box = FXPacker.new(parent, opts, dims)
@@ -29,11 +29,11 @@ def render(parent, values, level)
 end
 
 def topo(parent, values)
+  # Starts recursive rendering
   render(parent, values, 0)
 end
 
 class AppWindow < FXMainWindow
-
   def initialize(app, title, w, h, data)
     # Create app window
     properties = { :width => w, :height => h, :padding => 32 }
@@ -47,6 +47,7 @@ class AppWindow < FXMainWindow
     # Render topo
     topo(@frame, data)
   end
+
   def create
     super
     show(PLACEMENT_SCREEN)

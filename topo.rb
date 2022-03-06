@@ -1,3 +1,7 @@
+require 'rubygems'
+require 'bundler'
+Bundler.setup(:default, :ci)
+
 require 'yaml'
 require 'json'
 require 'fox16'

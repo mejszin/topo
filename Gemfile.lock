@@ -1,0 +1,15 @@
+GEM
+  remote: https://rubygems.org/
+  specs:
+    fxruby (1.6.45-x64-mingw-ucrt)
+      mini_portile2 (~> 2.1)
+    mini_portile2 (2.8.0)
+
+PLATFORMS
+  x64-mingw-ucrt
+
+DEPENDENCIES
+  fxruby (~> 1.6)
+
+BUNDLED WITH
+   2.3.8
